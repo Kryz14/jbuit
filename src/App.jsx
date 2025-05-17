@@ -1,72 +1,77 @@
-import React, { useState, useEffect } from 'react';
-// Note: Make sure Bootstrap CSS is already imported in your main file
+import React, { useState, useEffect, useRef } from 'react';
+import Isotope from 'isotope-layout';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import GLightbox from 'glightbox';
+import 'glightbox/dist/css/glightbox.css';
 
 const App = () => {
-  // State for mobile navigation toggle
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
-  
-  // Handle mobile nav toggle
-  const toggleMobileNav = () => {
-    setIsMobileNavActive(!isMobileNavActive);
-  };
-  
-  // State for contact form
+  const toggleMobileNav = () => setIsMobileNavActive(!isMobileNavActive);
+
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
-  
-  // State for newsletter form
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  
-  // Form status states
-  const [contactStatus, setContactStatus] = useState({
-    loading: false,
-    error: false,
-    sent: false
-  });
-  
-  const [newsletterStatus, setNewsletterStatus] = useState({
-    loading: false,
-    error: false,
-    sent: false
-  });
 
-  
-  // Contact form handlers
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [contactStatus, setContactStatus] = useState({ loading: false, error: false, sent: false });
+  const [newsletterStatus, setNewsletterStatus] = useState({ loading: false, error: false, sent: false });
+
   const handleContactChange = (e) => {
     const { name, value } = e.target;
-    setContactForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setContactForm(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleContactSubmit = (e) => {
     e.preventDefault();
     setContactStatus({ loading: true, error: false, sent: false });
-    
-    // Simulate API call
+
     setTimeout(() => {
       setContactStatus({ loading: false, error: false, sent: true });
       setContactForm({ name: '', email: '', subject: '', message: '' });
     }, 1000);
   };
-  
-  // Newsletter form handlers
+
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
     setNewsletterStatus({ loading: true, error: false, sent: false });
-    
-    // Simulate API call
+
     setTimeout(() => {
       setNewsletterStatus({ loading: false, error: false, sent: true });
       setNewsletterEmail('');
     }, 1000);
   };
 
+  // --- ISOTOPE ---
+  const isotope = useRef();
+  const [filterKey, setFilterKey] = useState('*');
+
+  useEffect(() => {
+    isotope.current = new Isotope('.isotope-container', {
+      itemSelector: '.isotope-item',
+      layoutMode: 'masonry'
+    });
+
+    return () => isotope.current?.destroy();
+  }, []);
+
+  useEffect(() => {
+  // Initialize Isotope
+  isotope.current = new Isotope('.isotope-container', {
+    itemSelector: '.isotope-item',
+    layoutMode: 'masonry'
+  });
+
+  // Initialize GLightbox
+  const lightbox = GLightbox({ selector: '.glightbox' });
+
+  return () => {
+    isotope.current?.destroy();
+    lightbox.destroy();
+  };
+}, []);
   return (
     <>
     
@@ -518,73 +523,101 @@ const App = () => {
          
 
           <section id="contact" className="contact">
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-8">
-                {/* Contact Form */}
-                <form onSubmit={handleContactSubmit} className="php-email-form" data-aos="fade-up" data-aos-delay="200">
-                  <div className="row gy-4">
-                    <div className="col-md-6">
-                      <input 
-                        type="text" 
-                        name="name" 
-                        className="form-control" 
-                        placeholder="Your Name" 
-                        required
-                        value={contactForm.name}
-                        onChange={handleContactChange}
-                      />
-                    </div>
+  <div className="container">
+    <div className="row gy-4">
+      {/* Left side: Contact Info */}
+      <div className="col-lg-4">
+        <div className="info-item d-flex">
+          <div className="icon"><i className="bi bi-geo-alt-fill"></i></div>
+          <div>
+            <h4>Address</h4>
+            <p>A108 Adam Street, New York, NY 535022</p>
+          </div>
+        </div>
 
-                    <div className="col-md-6">
-                      <input 
-                        type="email" 
-                        className="form-control" 
-                        name="email" 
-                        placeholder="Your Email" 
-                        required
-                        value={contactForm.email}
-                        onChange={handleContactChange}
-                      />
-                    </div>
+        <div className="info-item d-flex">
+          <div className="icon"><i className="bi bi-telephone-fill"></i></div>
+          <div>
+            <h4>Call Us</h4>
+            <p>+1 5589 55488 55</p>
+          </div>
+        </div>
 
-                    <div className="col-md-12">
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        name="subject" 
-                        placeholder="Subject" 
-                        required
-                        value={contactForm.subject}
-                        onChange={handleContactChange}
-                      />
-                    </div>
+        <div className="info-item d-flex">
+          <div className="icon"><i className="bi bi-envelope-fill"></i></div>
+          <div>
+            <h4>Email Us</h4>
+            <p>info@example.com</p>
+          </div>
+        </div>
+      </div>
 
-                    <div className="col-md-12">
-                      <textarea 
-                        className="form-control" 
-                        name="message" 
-                        rows="6" 
-                        placeholder="Message" 
-                        required
-                        value={contactForm.message}
-                        onChange={handleContactChange}
-                      />
-                    </div>
+      {/* Right side: Contact Form */}
+      <div className="col-lg-8">
+        <form onSubmit={handleContactSubmit} className="php-email-form">
+          <div className="row gy-4">
+            <div className="col-md-6">
+              <input
+                type="text"
+                name="name"
+                className="form-control"
+                placeholder="Your Name"
+                required
+                value={contactForm.name}
+                onChange={handleContactChange}
+              />
+            </div>
 
-                    <div className="col-md-12 text-center">
-                      {contactStatus.loading && <div className="loading">Loading</div>}
-                      {contactStatus.error && <div className="error-message">There was an error sending your message</div>}
-                      {contactStatus.sent && <div className="sent-message">Your message has been sent. Thank you!</div>}
+            <div className="col-md-6">
+              <input
+                type="email"
+                name="email"
+                className="form-control"
+                placeholder="Your Email"
+                required
+                value={contactForm.email}
+                onChange={handleContactChange}
+              />
+            </div>
 
-                      <button type="submit">Send Message</button>
-                    </div>
-                  </div>
-                </form>
-              </div>
+            <div className="col-md-12">
+              <input
+                type="text"
+                name="subject"
+                className="form-control"
+                placeholder="Subject"
+                required
+                value={contactForm.subject}
+                onChange={handleContactChange}
+              />
+            </div>
+
+            <div className="col-md-12">
+              <textarea
+                name="message"
+                className="form-control"
+                rows="6"
+                placeholder="Message"
+                required
+                value={contactForm.message}
+                onChange={handleContactChange}
+              ></textarea>
+            </div>
+
+            <div className="col-md-12 text-center">
+              {contactStatus.loading && <div className="loading">Loading</div>}
+              {contactStatus.error && <div className="error-message">There was an error sending your message</div>}
+              {contactStatus.sent && <div className="sent-message">Your message has been sent. Thank you!</div>}
+
+              <button type="submit" className="btn btn-warning">Send Message</button>
             </div>
           </div>
-        </section>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
       </main>
 
       <footer id="footer" className="footer dark-background">

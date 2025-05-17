@@ -1040,6 +1040,7 @@ section,
   margin: 10px 0 15px 0;
   font-size: 22px;
   transition: 0.3s;
+  color: #000;
 }
 
 .services .service-item p {
