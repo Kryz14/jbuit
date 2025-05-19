@@ -8,6 +8,10 @@ const App = () => {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
   const toggleMobileNav = () => setIsMobileNavActive(!isMobileNavActive);
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+
+
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -23,6 +27,10 @@ const App = () => {
     const { name, value } = e.target;
     setContactForm(prev => ({ ...prev, [name]: value }));
   };
+  const handleDropdownToggle = (e) => {
+  e.preventDefault(); // Stop page from jumping
+  setIsDropdownOpen(prev => !prev);
+};
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
@@ -48,93 +56,133 @@ const App = () => {
   const isotope = useRef();
   const [filterKey, setFilterKey] = useState('*');
 
+  // Handle filter change
+  const handleFilterChange = (key) => {
+    setFilterKey(key);
+    if (isotope.current) {
+      const filterValue = key === '*' ? key : `.filter-${key}`;
+      isotope.current.arrange({ filter: filterValue });
+    }
+  };
+
+  // Initialize Isotope and GLightbox
   useEffect(() => {
     isotope.current = new Isotope('.isotope-container', {
-      itemSelector: '.isotope-item',
+      itemSelector: '.portfolio-item',
       layoutMode: 'masonry'
     });
 
-    return () => isotope.current?.destroy();
+    const lightbox = GLightbox({ selector: '.glightbox' });
+
+    return () => {
+      isotope.current?.destroy();
+      lightbox.destroy();
+    };
   }, []);
 
+  const [isScrolled, setIsScrolled] = useState(false);
   useEffect(() => {
-  // Initialize Isotope
-  isotope.current = new Isotope('.isotope-container', {
-    itemSelector: '.isotope-item',
-    layoutMode: 'masonry'
-  });
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  // Initialize GLightbox
-  const lightbox = GLightbox({ selector: '.glightbox' });
+  // Handle dropdown toggle for mobile
+  
 
-  return () => {
-    isotope.current?.destroy();
-    lightbox.destroy();
+  // Handle smooth scrolling for nav items
+  const handleNavClick = (e, targetId) => {
+    e.preventDefault();
+    const targetElement = document.querySelector(targetId);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth' });
+      setIsMobileNavActive(false); // Close mobile menu after clicking
+    }
   };
+  const [isVisible, setIsVisible] = useState(false);
+
+useEffect(() => {
+  const toggleVisibility = () => {
+    setIsVisible(window.scrollY > 300);
+  };
+
+  window.addEventListener('scroll', toggleVisibility);
+  return () => window.removeEventListener('scroll', toggleVisibility);
 }, []);
+
   return (
     <>
-    
-      <div className="index-page">
-        <header id="header" className="header d-flex align-items-center fixed-top ">
-          <div className="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
-
+      <div className={isMobileNavActive ? 'mobile-nav-active' : ''}>
+        <header id="header" className={`header fixed-top ${isScrolled ? 'scrolled' : ''}`}>
+          <div className="container-fluid container-xl d-flex align-items-center justify-content-between">
             <a href="index.html" className="logo d-flex align-items-center me-auto me-lg-0">
-              {/* Uncomment the line below if you also wish to use an image logo */}
-              {/* <img src="assets/img/logo.png" alt="" /> */}
               <h1 className="sitename">Jbuit</h1>
               <span>.</span>
             </a>
 
             <nav id="navmenu" className={`navmenu ${isMobileNavActive ? 'mobile-nav-active' : ''}`}>
               <ul>
-                <li><a href="#hero" className="active">Home<br /></a></li>
-                <li><a href="#about">Who we are</a></li>
-                <li><a href="#services">What we offer</a></li>
-                <li><a href="#portfolio">Pricing</a></li>
-                <li><a href="#team">Testimonial</a></li>
+                <li><a href="#hero" className="active" onClick={(e) => handleNavClick(e, '#hero')}>Home</a></li>
+                <li><a href="#about" onClick={(e) => handleNavClick(e, '#about')}>Who we are</a></li>
+                <li><a href="#services" onClick={(e) => handleNavClick(e, '#services')}>What we offer</a></li>
+                <li><a href="#portfolio" onClick={(e) => handleNavClick(e, '#portfolio')}>Pricing</a></li>
+                <li><a href="#team" onClick={(e) => handleNavClick(e, '#team')}>Testimonial</a></li>
                 <li className="dropdown">
-                  <a href="#">
-                    <span>Our Portfolio</span> <i className="bi bi-chevron-down toggle-dropdown"></i>
-                  </a>
-                  <ul>
-                    <li><a href="#">UI/UX</a></li>
-                   
-                    <li><a href="#">Web Development</a></li>
-                    <li><a href="#">Mobile App Development</a></li>
-                    
-                  </ul>
-                </li>
-                <li><a href="#contact">Contact</a></li>
+  <a href="#" onClick={handleDropdownToggle}>
+    <span>Our Portfolio</span> 
+    <i className="bi bi-chevron-down toggle-dropdown"></i>
+  </a>
+  <ul style={{ display: isDropdownOpen ? 'block' : 'none' }}>
+    <li><a href="#">UI/UX</a></li>
+    <li><a href="#">Web Development</a></li>
+    <li><a href="#">Mobile App Development</a></li>
+  </ul>
+</li>
+
+                <li><a href="#contact" onClick={(e) => handleNavClick(e, '#contact')}>Contact</a></li>
               </ul>
               <i 
                 className={`mobile-nav-toggle d-xl-none bi ${isMobileNavActive ? 'bi-x' : 'bi-list'}`}
                 onClick={toggleMobileNav}
-              ></i>
+              />
             </nav>
 
-            <a className="btn-getstarted" href="index.html#about">Get Started</a>
-
+            <a className="btn-getstarted d-block d-xl-inline-block" href="index.html#about">Get Started</a>
           </div>
         </header>
-
+        </div>
         <main className="main">
 
           {/* Hero Section */}
           <section id="hero" className="hero section dark-background">
 
             <img src="assets/img/hero-bg.jpg" alt="" data-aos="fade-in" style={{
-    width: "100vw",
-    height: "100vh",
-    objectFit: "cover",
-  }}/>
+              width: "100vw",
+              height: "100vh",
+              objectFit: "cover",
+            }}/>
 
             <div className="container">
-
               <div className="row justify-content-center text-center" data-aos="fade-up" data-aos-delay="100">
                 <div className="col-xl-6 col-lg-8">
                   <h2>Powerful Digital Solutions With GP<span>.</span></h2>
                   <p>We are team of talented digital marketers</p>
+                  
+                  {/* Scroll down animation */}
+                  <div className="scroll-down-animation mt-5">
+                    <a href="#about" className="scroll-down">
+                      <span className="mouse">
+                        <span className="wheel"></span>
+                      </span>
+                      <div className="arrows">
+                        <span className="arrow-down"></span>
+                        <span className="arrow-down"></span>
+                        <span className="arrow-down"></span>
+                      </div>
+                    </a>
+                  </div>
                 </div>
               </div>
 
@@ -170,16 +218,12 @@ const App = () => {
                   </div>
                 </div>
               </div>
-
             </div>
-
           </section>{/* End Hero Section */}
 
           {/* About Section */}
           <section id="about" className="about section">
-
             <div className="container" data-aos="fade-up" data-aos-delay="100">
-
               <div className="row gy-4">
                 <div className="col-lg-6 order-1 order-lg-2">
                   <img src="assets/img/about.jpg" className="img-fluid" alt="" />
@@ -201,25 +245,17 @@ const App = () => {
                   </p>
                 </div>
               </div>
-
             </div>
-
           </section>{/* End About Section */}
-
-          {/* Clients Section */}
-         
 
           {/* Features Section */}
           <section id="features" className="features section">
-
             <div className="container">
-
               <div className="row gy-4">
                 <div className="features-image col-lg-6" data-aos="fade-up" data-aos-delay="100">
                   <img src="assets/img/features-bg.jpg" alt="" />
                 </div>
                 <div className="col-lg-6">
-
                   <div className="features-item d-flex ps-0 ps-lg-3 pt-4 pt-lg-0" data-aos="fade-up" data-aos-delay="200">
                     <i className="bi bi-archive flex-shrink-0"></i>
                     <div>
@@ -251,17 +287,13 @@ const App = () => {
                       <p>Expedita veritatis consequuntur nihil tempore laudantium vitae denat pacta</p>
                     </div>
                   </div>{/* End Features Item*/}
-
                 </div>
               </div>
-
             </div>
-
           </section>{/* End Features Section */}
 
           {/* Services Section */}
           <section id="services" className="services section">
-
             {/* Section Title */}
             <div className="container section-title" data-aos="fade-up">
               <h2>Services</h2>
@@ -269,9 +301,7 @@ const App = () => {
             </div>{/* End Section Title */}
 
             <div className="container">
-
               <div className="row gy-4">
-
                 <div className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
                   <div className="service-item position-relative">
                     <div className="icon">
@@ -343,18 +373,13 @@ const App = () => {
                     <p>Hic molestias ea quibusdam eos. Fugiat enim doloremque aut neque non et debitis iure. Corrupti recusandae ducimus enim.</p>
                   </div>
                 </div>{/* End Service Item */}
-
               </div>
-
             </div>
-
           </section>{/* End Services Section */}
 
           {/* Call To Action Section */}
           <section id="call-to-action" className="call-to-action section dark-background">
-
             <img src="assets/img/cta-bg.jpg" alt="" />
-
             <div className="container">
               <div className="row justify-content-center" data-aos="zoom-in" data-aos-delay="100">
                 <div className="col-xl-10">
@@ -366,72 +391,120 @@ const App = () => {
                 </div>
               </div>
             </div>
-
           </section>{/* End Call To Action Section */}
 
           {/* Portfolio Section */}
-          <section id="portfolio" className="portfolio section">
-
-            {/* Section Title */}
-            <div className="container section-title" data-aos="fade-up">
-              <h2>Portfolio</h2>
-              <p>Check our Portfolio</p>
-            </div>{/* End Section Title */}
-
-            <div className="container">
-
-              <div className="isotope-layout" data-default-filter="*" data-layout="masonry" data-sort="original-order">
-
-                <ul className="portfolio-filters isotope-filters" data-aos="fade-up" data-aos-delay="100">
-                  <li data-filter="*" className="filter-active">All</li>
-                  <li data-filter=".filter-app">App</li>
-                  <li data-filter=".filter-product">Card</li>
-                  <li data-filter=".filter-branding">Web</li>
-                </ul>{/* End Portfolio Filters */}
-
-                <div className="row gy-4 isotope-container" data-aos="fade-up" data-aos-delay="200">
-
-                  <div className="col-lg-4 col-md-6 portfolio-item isotope-item filter-app">
-                    <img src="assets/img/masonry-portfolio/masonry-portfolio-1.jpg" className="img-fluid" alt="" />
-                    <div className="portfolio-info">
-                      <h4>App 1</h4>
-                      <p>Lorem ipsum, dolor sit</p>
-                      <a href="assets/img/masonry-portfolio/masonry-portfolio-1.jpg" title="App 1" data-gallery="portfolio-gallery-app" className="glightbox preview-link"><i className="bi bi-zoom-in"></i></a>
-                      <a href="portfolio-details.html" title="More Details" className="details-link"><i className="bi bi-link-45deg"></i></a>
-                    </div>
-                  </div>{/* End Portfolio Item */}
-
-                  {/* Additional portfolio items - shortened for brevity */}
-                  {/* Add more portfolio items as needed */}
-
-                </div>{/* End Portfolio Container */}
-
+           
+        
+        <section id="portfolio" className="portfolio section">
+          {/* Section Title */}
+          <div className="container section-title" data-aos="fade-up">
+            <h2>Portfolio</h2>
+            <p>Check our Portfolio</p>
+          </div>
+          <div className="container">
+            <div className="isotope-layout" data-default-filter="*">
+              <ul className="portfolio-filters isotope-filters" data-aos="fade-up" data-aos-delay="100">
+                <li 
+                  className={filterKey === '*' ? 'filter-active' : ''} 
+                  onClick={() => handleFilterChange('*')}
+                >
+                  All
+                </li>
+                <li 
+                  className={filterKey === 'app' ? 'filter-active' : ''} 
+                  onClick={() => handleFilterChange('app')}
+                >
+                  App
+                </li>
+                <li 
+                  className={filterKey === 'product' ? 'filter-active' : ''} 
+                  onClick={() => handleFilterChange('product')}
+                >
+                  Card
+                </li>
+                <li 
+                  className={filterKey === 'branding' ? 'filter-active' : ''} 
+                  onClick={() => handleFilterChange('branding')}
+                >
+                  Web
+                </li>
+              </ul>
+              <div className="row gy-4 isotope-container" data-aos="fade-up" data-aos-delay="200">
+                <div className="col-lg-4 col-md-6 portfolio-item isotope-item filter-app">
+                  <img src="assets/img/masonry-portfolio/masonry-portfolio-1.jpg" className="img-fluid" alt="" />
+                  <div className="portfolio-info">
+                    <h4>App 1</h4>
+                    <p>Lorem ipsum, dolor sit</p>
+                    <a href="assets/img/masonry-portfolio/masonry-portfolio-1.jpg" title="App 1" data-gallery="portfolio-gallery-app" className="glightbox preview-link"><i className="bi bi-zoom-in"></i></a>
+                    <a href="portfolio-details.html" title="More Details" className="details-link"><i className="bi bi-link-45deg"></i></a>
+                  </div>
+                </div>
+                <div className="col-lg-4 col-md-6 portfolio-item isotope-item filter-app">
+                  <img src="assets/img/masonry-portfolio/masonry-portfolio-3.jpg" className="img-fluid" alt="" />
+                  <div className="portfolio-info">
+                    <h4>App 2</h4>
+                    <p>Mobile application</p>
+                    <a href="assets/img/masonry-portfolio/masonry-portfolio-3.jpg" title="App 2" data-gallery="portfolio-gallery-app" className="glightbox preview-link"><i className="bi bi-zoom-in"></i></a>
+                    <a href="portfolio-details.html" title="More Details" className="details-link"><i className="bi bi-link-45deg"></i></a>
+                  </div>
+                </div>
+                <div className="col-lg-4 col-md-6 portfolio-item isotope-item filter-product">
+                  <img src="assets/img/masonry-portfolio/masonry-portfolio-2.jpg" className="img-fluid" alt="" />
+                  <div className="portfolio-info">
+                    <h4>Card 1</h4>
+                    <p>Business card design</p>
+                    <a href="assets/img/masonry-portfolio/masonry-portfolio-2.jpg" title="Card 1" data-gallery="portfolio-gallery-product" className="glightbox preview-link"><i className="bi bi-zoom-in"></i></a>
+                    <a href="portfolio-details.html" title="More Details" className="details-link"><i className="bi bi-link-45deg"></i></a>
+                  </div>
+                </div>
+                <div className="col-lg-4 col-md-6 portfolio-item isotope-item filter-product">
+                  <img src="assets/img/masonry-portfolio/masonry-portfolio-5.jpg" className="img-fluid" alt="" />
+                  <div className="portfolio-info">
+                    <h4>Card 2</h4>
+                    <p>Premium business cards</p>
+                    <a href="assets/img/masonry-portfolio/masonry-portfolio-5.jpg" title="Card 2" data-gallery="portfolio-gallery-product" className="glightbox preview-link"><i className="bi bi-zoom-in"></i></a>
+                    <a href="portfolio-details.html" title="More Details" className="details-link"><i className="bi bi-link-45deg"></i></a>
+                  </div>
+                </div>
+                <div className="col-lg-4 col-md-6 portfolio-item isotope-item filter-branding">
+                  <img src="assets/img/masonry-portfolio/masonry-portfolio-4.jpg" className="img-fluid" alt="" />
+                  <div className="portfolio-info">
+                    <h4>Web 1</h4>
+                    <p>Website redesign</p>
+                    <a href="assets/img/masonry-portfolio/masonry-portfolio-4.jpg" title="Web 1" data-gallery="portfolio-gallery-branding" className="glightbox preview-link"><i className="bi bi-zoom-in"></i></a>
+                    <a href="portfolio-details.html" title="More Details" className="details-link"><i className="bi bi-link-45deg"></i></a>
+                  </div>
+                </div>
+                <div className="col-lg-4 col-md-6 portfolio-item isotope-item filter-branding">
+                  <img src="assets/img/masonry-portfolio/masonry-portfolio-6.jpg" className="img-fluid" alt="" />
+                  <div className="portfolio-info">
+                    <h4>Web 2</h4>
+                    <p>E-commerce solution</p>
+                    <a href="assets/img/masonry-portfolio/masonry-portfolio-6.jpg" title="Web 2" data-gallery="portfolio-gallery-branding" className="glightbox preview-link"><i className="bi bi-zoom-in"></i></a>
+                    <a href="portfolio-details.html" title="More Details" className="details-link"><i className="bi bi-link-45deg"></i></a>
+                  </div>
+                </div>
               </div>
-
             </div>
-
-          </section>{/* End Portfolio Section */}
+          </div>
+        </section>
 
           {/* Stats Section */}
           <section id="stats" className="stats section">
-
             <div className="container" data-aos="fade-up" data-aos-delay="100">
-
               <div className="row gy-4 align-items-center justify-content-between">
-
                 <div className="col-lg-5">
                   <img src="assets/img/stats-img.jpg" alt="" className="img-fluid" />
                 </div>
 
                 <div className="col-lg-6">
-
                   <h3 className="fw-bold fs-2 mb-3">Voluptatem dignissimos provident quasi</h3>
                   <p>
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit
                   </p>
 
                   <div className="row gy-4">
-
                     <div className="col-lg-6">
                       <div className="stats-item d-flex">
                         <i className="bi bi-emoji-smile flex-shrink-0"></i>
@@ -697,12 +770,20 @@ const App = () => {
         </div>
       </footer>
 
-      <a href="#" id="scroll-top" className="scroll-top d-flex align-items-center justify-content-center">
-        <i className="bi bi-arrow-up-short"></i>
-      </a>
+            <a
+  href="#"
+  className={`scroll-top d-flex align-items-center justify-content-center ${isVisible ? 'active' : ''}`}
+  onClick={(e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }}
+>
+  <i className="bi bi-arrow-up-short fs-3 text-white"></i>
+</a>
+
 
      
-    </div>
+    
     </>
   );
 };
